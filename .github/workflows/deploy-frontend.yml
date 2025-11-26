@@ -38,6 +38,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_BACKEND_URL: ${{ vars.BACKEND_URL }}
+          VITE_BASE_PATH: /sloper/
         run: npm run build
 
       - name: Setup Pages
