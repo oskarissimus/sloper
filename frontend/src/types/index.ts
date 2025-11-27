@@ -1,7 +1,7 @@
 // Configuration
 export interface ConfigState {
   apiKeys: {
-    openai: string;
+    openai: string | null;
     deepseek: string | null;
     elevenLabs: string;
   };

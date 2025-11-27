@@ -5,11 +5,7 @@ import { ApiKeyInputs } from './ApiKeyInputs';
 import { LlmProviderSelect } from './LlmProviderSelect';
 import { VideoSettings } from './VideoSettings';
 import { TtsSettings } from './TtsSettings';
-import {
-  validateOpenAiKey,
-  validateDeepSeekKey,
-  validateElevenLabsKey,
-} from '../../services/validation';
+import { validateElevenLabsKey } from '../../services/validation';
 
 export function ConfigScreen() {
   const { stage, setStage, setError } = useWorkflow();
@@ -21,33 +17,24 @@ export function ConfigScreen() {
 
   const canStart = () => {
     const { apiKeys, llm } = config;
-    // Check if required keys are present (not empty)
-    if (llm.provider === 'openai') {
-      return apiKeys.openai.length > 0 && apiKeys.elevenLabs.length > 0;
-    } else {
-      return (apiKeys.deepseek?.length ?? 0) > 0 && apiKeys.elevenLabs.length > 0;
-    }
+    // Check required: selected provider's API key, a model, and ElevenLabs key
+    const hasLlmKey = llm.provider === 'openai'
+      ? (apiKeys.openai?.length ?? 0) > 0
+      : (apiKeys.deepseek?.length ?? 0) > 0;
+    const hasModel = llm.model.length > 0;
+    const hasElevenLabsKey = apiKeys.elevenLabs.length > 0;
+    return hasLlmKey && hasModel && hasElevenLabsKey;
   };
 
   const handleStartGeneration = async () => {
     setIsValidating(true);
     setValidationError(null);
 
-    const { llm, apiKeys } = config;
+    const { apiKeys } = config;
 
     try {
-      // Validate LLM provider key
-      const llmResult = llm.provider === 'openai'
-        ? await validateOpenAiKey(apiKeys.openai)
-        : await validateDeepSeekKey(apiKeys.deepseek || '');
-
-      if (!llmResult.valid) {
-        setValidationError(llmResult.error || 'LLM API key validation failed');
-        setIsValidating(false);
-        return;
-      }
-
-      // Validate ElevenLabs key
+      // LLM key is already validated during model fetch
+      // Just validate ElevenLabs key
       const ttsResult = await validateElevenLabsKey(apiKeys.elevenLabs);
 
       if (!ttsResult.valid) {
@@ -78,13 +65,13 @@ export function ConfigScreen() {
       </div>
 
       <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">API Keys</h2>
-        <ApiKeyInputs />
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">LLM Settings</h2>
+        <LlmProviderSelect />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">LLM Settings</h2>
-        <LlmProviderSelect />
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">TTS API Key</h2>
+        <ApiKeyInputs />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6">

@@ -5,13 +5,13 @@ import type { ConfigState } from '../types';
 // Default configuration values per FR-008
 const defaultConfig: ConfigState = {
   apiKeys: {
-    openai: '',
+    openai: null,
     deepseek: null,
     elevenLabs: '',
   },
   llm: {
     provider: 'openai',
-    model: 'gpt-4o',
+    model: '',  // Will be set after API key is entered and models are fetched
   },
   video: {
     resolution: { width: 1024, height: 1536 },
