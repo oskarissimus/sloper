@@ -17,6 +17,7 @@ export interface ImageResult {
 const BRIGHTNESS_THRESHOLD = 50;
 const BRIGHTNESS_BOOST = 1.5;
 const CONTRAST_BOOST = 1.2;
+const JPEG_QUALITY = 0.85;
 
 /**
  * Convert a Blob to base64 string (without data URL prefix)
@@ -298,7 +299,47 @@ export function flattenTransparency(imageDataUrl: string): Promise<ImageResult> 
 }
 
 /**
- * Process an image: check brightness and transparency, apply corrections if needed
+ * Convert an image to JPEG format to reduce payload size
+ */
+export function convertToJpeg(imageDataUrl: string): Promise<ImageResult> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      // Fill white background (JPEG has no alpha channel)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+            resolve({ data: blob, dataUrl });
+          } else {
+            reject(new Error('Failed to convert image to JPEG'));
+          }
+        },
+        'image/jpeg',
+        JPEG_QUALITY
+      );
+    };
+    img.onerror = () => reject(new Error('Failed to load image for JPEG conversion'));
+    img.src = imageDataUrl;
+  });
+}
+
+/**
+ * Process an image: check brightness and transparency, apply corrections if needed,
+ * then convert to JPEG to reduce payload size for video assembly.
  */
 export async function processImage(
   imageDataUrl: string,
@@ -319,6 +360,9 @@ export async function processImage(
     console.log(`Image brightness ${brightness.toFixed(1)} below threshold ${BRIGHTNESS_THRESHOLD}, correcting...`);
     result = await correctBrightness(result.dataUrl);
   }
+
+  // Convert to JPEG to reduce payload size
+  result = await convertToJpeg(result.dataUrl);
 
   return result;
 }
