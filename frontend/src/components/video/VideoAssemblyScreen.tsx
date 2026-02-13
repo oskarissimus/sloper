@@ -7,6 +7,10 @@ import { assembleVideo, getBackendUrl } from '../../services/video';
 
 type AssemblyStatus = 'preparing' | 'uploading' | 'processing' | 'done' | 'error';
 
+function formatMB(bytes: number): string {
+  return (bytes / 1024 / 1024).toFixed(1);
+}
+
 function ElapsedTimer() {
   const [elapsed, setElapsed] = useState(0);
 
@@ -47,6 +51,8 @@ export function VideoAssemblyScreen() {
   const { scenes } = useScenes();
   const { assets, timings } = useAssets();
   const [status, setStatus] = useState<AssemblyStatus>('preparing');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [uploadSizeMB, setUploadSizeMB] = useState<string>('');
   const hasStartedRef = useRef(false);
   const prevStageRef = useRef(stage);
 
@@ -104,6 +110,10 @@ export function VideoAssemblyScreen() {
         });
       }
 
+      // Calculate total upload size
+      const totalBytes = [...images, ...audioFiles].reduce((sum, b) => sum + b.size, 0);
+      setUploadSizeMB(formatMB(totalBytes));
+
       setStatus('uploading');
 
       const backendUrl = getBackendUrl();
@@ -124,6 +134,7 @@ export function VideoAssemblyScreen() {
     } catch (error) {
       setStatus('error');
       const message = error instanceof Error ? error.message : 'Assembly failed';
+      setErrorMessage(message);
       setError(message);
     } finally {
       setIsGenerating(false);
@@ -134,7 +145,9 @@ export function VideoAssemblyScreen() {
 
   const statusMessages: Record<AssemblyStatus, string> = {
     preparing: 'Preparing assets for upload...',
-    uploading: 'Uploading to assembly server...',
+    uploading: uploadSizeMB
+      ? `Uploading ${uploadSizeMB} MB to assembly server...`
+      : 'Uploading to assembly server...',
     processing: 'Processing video with FFmpeg...',
     done: 'Complete! Redirecting...',
     error: 'Assembly failed',
@@ -177,7 +190,10 @@ export function VideoAssemblyScreen() {
                 />
               </svg>
             </div>
-            <p className="text-lg text-red-600 mb-4">Video assembly failed</p>
+            <p className="text-lg text-red-600 mb-2">Video assembly failed</p>
+            {errorMessage && (
+              <p className="text-sm text-red-500 mb-4 max-w-md">{errorMessage}</p>
+            )}
             <button
               onClick={() => {
                 hasStartedRef.current = false;

@@ -1,6 +1,8 @@
 // Video Assembly Service
 // Client for backend video assembly API
 
+export const MAX_UPLOAD_SIZE_MB = 32;
+
 export interface SceneMetadata {
   index: number;
   imageDuration: number;
@@ -37,6 +39,16 @@ export async function assembleVideo(
   images: Blob[],
   audioFiles: Blob[]
 ): Promise<AssemblyResult> {
+  // Calculate total size and validate before uploading
+  const totalBytes = [...images, ...audioFiles].reduce((sum, blob) => sum + blob.size, 0);
+  const totalMB = totalBytes / 1024 / 1024;
+  if (totalMB > MAX_UPLOAD_SIZE_MB) {
+    throw new Error(
+      `Total upload size (${totalMB.toFixed(1)} MB) exceeds the ${MAX_UPLOAD_SIZE_MB} MB limit. ` +
+      `Try reducing the number of scenes or using smaller assets.`
+    );
+  }
+
   const formData = new FormData();
 
   // Add metadata as JSON string
