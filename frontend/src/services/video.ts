@@ -44,7 +44,7 @@ export async function assembleVideo(
 
   // Add images in order (backend expects 'images' field)
   images.forEach((img, i) => {
-    formData.append('images', img, `image_${i}.png`);
+    formData.append('images', img, `image_${i}.jpg`);
   });
 
   // Add audio files in order (backend expects 'audio' field)

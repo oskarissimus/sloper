@@ -75,7 +75,7 @@ async def assemble_video_endpoint(
             audio_paths = []
 
             for i, img in enumerate(images):
-                path = tmppath / f"image_{i}.png"
+                path = tmppath / f"image_{i}.jpg"
                 content = await img.read()
                 path.write_bytes(content)
                 image_paths.append(path)
