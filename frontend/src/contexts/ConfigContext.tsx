@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { ConfigState } from '../types';
+
+const STORAGE_KEY = 'sloper-api-config';
 
 // Default configuration values per FR-008
 const defaultConfig: ConfigState = {
@@ -32,6 +34,21 @@ const defaultConfig: ConfigState = {
   temperature: 0.7,
 };
 
+function loadPersistedConfig(): ConfigState {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return defaultConfig;
+    const parsed = JSON.parse(stored);
+    return {
+      ...defaultConfig,
+      apiKeys: { ...defaultConfig.apiKeys, ...parsed.apiKeys },
+      llm: { ...defaultConfig.llm, provider: parsed.llm?.provider ?? defaultConfig.llm.provider },
+    };
+  } catch {
+    return defaultConfig;
+  }
+}
+
 interface ConfigContextType {
   config: ConfigState;
   updateApiKeys: (keys: Partial<ConfigState['apiKeys']>) => void;
@@ -50,7 +67,18 @@ interface ConfigProviderProps {
 }
 
 export function ConfigProvider({ children }: ConfigProviderProps) {
-  const [config, setConfig] = useState<ConfigState>(defaultConfig);
+  const [config, setConfig] = useState<ConfigState>(loadPersistedConfig);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        apiKeys: config.apiKeys,
+        llm: { provider: config.llm.provider },
+      }));
+    } catch {
+      // localStorage may be unavailable (e.g. private browsing)
+    }
+  }, [config.apiKeys, config.llm.provider]);
 
   const updateApiKeys = (keys: Partial<ConfigState['apiKeys']>) => {
     setConfig((prev) => ({
@@ -95,6 +123,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   };
 
   const resetConfig = () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
     setConfig(defaultConfig);
   };
 

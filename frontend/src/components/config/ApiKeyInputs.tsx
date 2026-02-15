@@ -29,7 +29,7 @@ export function ApiKeyInputs() {
         </div>
       </div>
       <p className="text-xs text-gray-500">
-        API keys are stored in memory only and never persisted.
+        API keys are saved in your browser's local storage.
       </p>
     </div>
   );
