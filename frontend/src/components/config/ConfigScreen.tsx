@@ -79,17 +79,13 @@ export function ConfigScreen() {
       </section>
 
       <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">TTS API Key</h2>
-        <ApiKeyInputs />
-      </section>
-
-      <section className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Video Settings</h2>
         <VideoSettings />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">TTS Settings</h2>
+        <ApiKeyInputs />
         <TtsSettings />
       </section>
 
