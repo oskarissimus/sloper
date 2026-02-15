@@ -10,8 +10,8 @@ const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 5 * 60 * 1000,
-  expect: { timeout: 10_000 },
+  timeout: 2 * 60 * 1000,
+  expect: { timeout: 5_000 },
   fullyParallel: false,
   workers: 1,
   retries: isCI ? 1 : 0,

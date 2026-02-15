@@ -20,7 +20,7 @@ test('generates a 1-scene video end-to-end', async ({ page }) => {
   await llmSection.getByRole('textbox').fill(providers.llm.apiKey);
 
   const llmModelSelect = llmSection.getByRole('combobox').nth(1);
-  await expect(llmModelSelect).toBeEnabled({ timeout: 15_000 });
+  await expect(llmModelSelect).toBeEnabled({ timeout: 10_000 });
   await llmModelSelect.selectOption(providers.llm.model);
 
   // Image: select provider, fill API key, select model, set quality
@@ -40,26 +40,26 @@ test('generates a 1-scene video end-to-end', async ({ page }) => {
 
   // Start generation
   await page.getByRole('button', { name: 'Start Generation' }).click();
-  await expect(page.getByRole('heading', { name: 'Generate Scenes' })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('heading', { name: 'Generate Scenes' })).toBeVisible({ timeout: 5_000 });
 
   // ── Stage 2: Scene Generation ──
 
   await page.getByPlaceholder(/Enter your video topic/).fill('A cat sitting on a windowsill watching rain');
   await page.getByRole('button', { name: 'Generate Scenes' }).click();
 
-  await expect(page.getByRole('button', { name: /Generate Assets/ })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole('button', { name: /Generate Assets/ })).toBeVisible({ timeout: 20_000 });
   await page.getByRole('button', { name: /Generate Assets/ }).click();
 
   // ── Stage 3: Asset Generation ──
 
-  await expect(page.getByRole('button', { name: 'Assemble Video' })).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole('button', { name: 'Assemble Video' })).toBeVisible({ timeout: 60_000 });
   await page.getByRole('button', { name: 'Assemble Video' }).click();
 
   // ── Stage 4: Video Assembly → auto-transitions to output ──
 
   // ── Stage 5: Verification ──
 
-  await expect(page.getByRole('heading', { name: /Your Video is Ready/ })).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole('heading', { name: /Your Video is Ready/ })).toBeVisible({ timeout: 60_000 });
 
   const video = page.locator('video');
   await expect(video).toBeVisible();

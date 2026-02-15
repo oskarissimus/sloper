@@ -10,8 +10,8 @@ const OPENAI_IMAGE_MODELS = [
 ];
 
 const NANO_BANANA_MODELS = [
-  { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)' },
-  { id: 'gemini-2.0-flash-preview-image-generation', name: 'Gemini 2.0 Flash Preview' },
+  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image' },
+  { id: 'gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image (Preview)' },
 ];
 
 const QUALITY_OPTIONS = [
