@@ -416,5 +416,113 @@ export class ConcurrencyLimiter<T> {
   }
 }
 
+// Nano Banana (Gemini image generation) support
+
+export interface NanoBananaGenerationOptions {
+  prompt: string;
+  model: string;
+  aspectRatio: string;
+}
+
+/**
+ * Map pixel dimensions to the nearest supported Gemini aspect ratio
+ */
+export function deriveAspectRatio(width: number, height: number): string {
+  const ratio = width / height;
+  const supported = [
+    { label: '16:9', value: 16 / 9 },
+    { label: '9:16', value: 9 / 16 },
+    { label: '4:3', value: 4 / 3 },
+    { label: '3:4', value: 3 / 4 },
+    { label: '1:1', value: 1 },
+  ];
+
+  let closest = supported[0];
+  let minDiff = Math.abs(ratio - closest.value);
+  for (const s of supported) {
+    const diff = Math.abs(ratio - s.value);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = s;
+    }
+  }
+  return closest.label;
+}
+
+/**
+ * Generate an image using Google's Gemini image generation API (Nano Banana)
+ */
+export async function generateNanoBananaImage(
+  apiKey: string,
+  options: NanoBananaGenerationOptions
+): Promise<ImageResult> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [{ text: options.prompt }],
+        },
+      ],
+      generationConfig: {
+        responseModalities: ['TEXT', 'IMAGE'],
+        imageConfig: {
+          aspectRatio: options.aspectRatio,
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(
+      error.error?.message || `Nano Banana image generation failed: ${response.status}`
+    );
+  }
+
+  const result = await response.json();
+
+  // Find the inline image data in the response
+  const candidates = result.candidates;
+  if (!candidates || candidates.length === 0) {
+    throw new Error('No candidates in Nano Banana response');
+  }
+
+  const parts = candidates[0].content?.parts;
+  if (!parts) {
+    throw new Error('No parts in Nano Banana response');
+  }
+
+  const imagePart = parts.find(
+    (p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData?.mimeType?.startsWith('image/')
+  );
+
+  if (!imagePart) {
+    // Likely a safety filter refusal - check for text response
+    const textPart = parts.find((p: { text?: string }) => p.text);
+    const reason = textPart?.text || 'Unknown reason';
+    throw new Error(`Nano Banana refused to generate image: ${reason}`);
+  }
+
+  const { mimeType, data: base64 } = imagePart.inlineData;
+
+  // Convert base64 to Blob
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type: mimeType });
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+
+  return { data: blob, dataUrl };
+}
+
 // Export singleton limiters
 export const imageLimiter = new ConcurrencyLimiter<ImageResult>(12);

@@ -3,6 +3,7 @@ export interface ConfigState {
   apiKeys: {
     openai: string | null;
     deepseek: string | null;
+    google: string | null;
     elevenLabs: string;
   };
   llm: {
@@ -16,8 +17,10 @@ export interface ConfigState {
     targetDuration: number;
   };
   image: {
+    provider: 'openai' | 'nanoBanana';
     model: string;
     quality: 'low' | 'medium' | 'high';
+    aspectRatio?: string;
   };
   tts: {
     model: string;

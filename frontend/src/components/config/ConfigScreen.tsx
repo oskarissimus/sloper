@@ -3,6 +3,7 @@ import { useConfig } from '../../contexts/ConfigContext';
 import { useWorkflow } from '../../contexts/WorkflowContext';
 import { ApiKeyInputs } from './ApiKeyInputs';
 import { LlmProviderSelect } from './LlmProviderSelect';
+import { ImageProviderSelect } from './ImageProviderSelect';
 import { VideoSettings } from './VideoSettings';
 import { TtsSettings } from './TtsSettings';
 import { validateElevenLabsKey } from '../../services/validation';
@@ -16,14 +17,17 @@ export function ConfigScreen() {
   if (stage !== 'config') return null;
 
   const canStart = () => {
-    const { apiKeys, llm } = config;
+    const { apiKeys, llm, image } = config;
     // Check required: selected provider's API key, a model, and ElevenLabs key
     const hasLlmKey = llm.provider === 'openai'
       ? (apiKeys.openai?.length ?? 0) > 0
       : (apiKeys.deepseek?.length ?? 0) > 0;
     const hasModel = llm.model.length > 0;
     const hasElevenLabsKey = apiKeys.elevenLabs.length > 0;
-    return hasLlmKey && hasModel && hasElevenLabsKey;
+    const hasImageKey = image.provider === 'openai'
+      ? (apiKeys.openai?.length ?? 0) > 0
+      : (apiKeys.google?.length ?? 0) > 0;
+    return hasLlmKey && hasModel && hasElevenLabsKey && hasImageKey;
   };
 
   const handleStartGeneration = async () => {
@@ -67,6 +71,11 @@ export function ConfigScreen() {
       <section className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">LLM Settings</h2>
         <LlmProviderSelect />
+      </section>
+
+      <section className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Image Settings</h2>
+        <ImageProviderSelect />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6">

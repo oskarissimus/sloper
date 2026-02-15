@@ -4,6 +4,8 @@ import { useScenes } from '../contexts/SceneContext';
 import { useAssets } from '../contexts/AssetContext';
 import {
   generateImage,
+  generateNanoBananaImage,
+  deriveAspectRatio,
   processImage,
   imageLimiter,
 } from '../services/images';
@@ -36,8 +38,10 @@ export function useAssetGeneration() {
   });
 
   const generateImages = useCallback(async () => {
-    const size = `${config.video.resolution.width}x${config.video.resolution.height}`;
+    const { width, height } = config.video.resolution;
+    const size = `${width}x${height}`;
     const total = scenes.length;
+    const isNanoBanana = config.image.provider === 'nanoBanana';
 
     setProgress((prev) => ({ ...prev, imagesTotal: total, imagesComplete: 0, imagesFailed: 0 }));
 
@@ -51,13 +55,23 @@ export function useAssetGeneration() {
         updateAssetStatus(image.id, 'generating');
 
         try {
-          // Generate image from OpenAI
-          const result = await generateImage(config.apiKeys.openai ?? '', {
-            prompt: scene.imageDescription,
-            model: config.image.model,
-            quality: config.image.quality,
-            size,
-          });
+          let result;
+
+          if (isNanoBanana) {
+            const aspectRatio = config.image.aspectRatio || deriveAspectRatio(width, height);
+            result = await generateNanoBananaImage(config.apiKeys.google ?? '', {
+              prompt: scene.imageDescription,
+              model: config.image.model,
+              aspectRatio,
+            });
+          } else {
+            result = await generateImage(config.apiKeys.openai ?? '', {
+              prompt: scene.imageDescription,
+              model: config.image.model,
+              quality: config.image.quality,
+              size,
+            });
+          }
 
           // Process image (flatten transparency, correct brightness)
           const processed = await processImage(result.dataUrl, result.data);
@@ -174,13 +188,26 @@ export function useAssetGeneration() {
 
       try {
         if (asset.type === 'image') {
-          const size = `${config.video.resolution.width}x${config.video.resolution.height}`;
-          const result = await generateImage(config.apiKeys.openai ?? '', {
-            prompt: scene.imageDescription,
-            model: config.image.model,
-            quality: config.image.quality,
-            size,
-          });
+          const { width, height } = config.video.resolution;
+          const size = `${width}x${height}`;
+          let result;
+
+          if (config.image.provider === 'nanoBanana') {
+            const aspectRatio = config.image.aspectRatio || deriveAspectRatio(width, height);
+            result = await generateNanoBananaImage(config.apiKeys.google ?? '', {
+              prompt: scene.imageDescription,
+              model: config.image.model,
+              aspectRatio,
+            });
+          } else {
+            result = await generateImage(config.apiKeys.openai ?? '', {
+              prompt: scene.imageDescription,
+              model: config.image.model,
+              quality: config.image.quality,
+              size,
+            });
+          }
+
           const processed = await processImage(result.dataUrl, result.data);
           setAssetData(assetId, processed.data, processed.dataUrl);
         } else {

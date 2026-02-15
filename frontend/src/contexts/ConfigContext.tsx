@@ -9,6 +9,7 @@ const defaultConfig: ConfigState = {
   apiKeys: {
     openai: null,
     deepseek: null,
+    google: null,
     elevenLabs: '',
   },
   llm: {
@@ -22,6 +23,7 @@ const defaultConfig: ConfigState = {
     targetDuration: 180,
   },
   image: {
+    provider: 'openai',
     model: 'gpt-image-1',
     quality: 'low',
   },
@@ -43,6 +45,7 @@ function loadPersistedConfig(): ConfigState {
       ...defaultConfig,
       apiKeys: { ...defaultConfig.apiKeys, ...parsed.apiKeys },
       llm: { ...defaultConfig.llm, provider: parsed.llm?.provider ?? defaultConfig.llm.provider },
+      image: { ...defaultConfig.image, provider: parsed.image?.provider ?? defaultConfig.image.provider },
     };
   } catch {
     return defaultConfig;
@@ -74,11 +77,12 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         apiKeys: config.apiKeys,
         llm: { provider: config.llm.provider },
+        image: { provider: config.image.provider },
       }));
     } catch {
       // localStorage may be unavailable (e.g. private browsing)
     }
-  }, [config.apiKeys, config.llm.provider]);
+  }, [config.apiKeys, config.llm.provider, config.image.provider]);
 
   const updateApiKeys = (keys: Partial<ConfigState['apiKeys']>) => {
     setConfig((prev) => ({

@@ -7,21 +7,9 @@ const RESOLUTIONS = [
   { label: '1280x720 (HD 720p)', width: 1280, height: 720 },
 ];
 
-const IMAGE_MODELS = [
-  { id: 'gpt-image-1', name: 'GPT Image 1 (DALL-E 3)' },
-  { id: 'dall-e-3', name: 'DALL-E 3' },
-  { id: 'dall-e-2', name: 'DALL-E 2' },
-];
-
-const QUALITY_OPTIONS = [
-  { value: 'low', label: 'Low (faster, cheaper)' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High (slower, better quality)' },
-];
-
 export function VideoSettings() {
-  const { config, updateVideo, updateImage, updateTemperature } = useConfig();
-  const { video, image, temperature } = config;
+  const { config, updateVideo, updateTemperature } = useConfig();
+  const { video, temperature } = config;
 
   const currentResolution = `${video.resolution.width}x${video.resolution.height}`;
 
@@ -90,42 +78,6 @@ export function VideoSettings() {
             max={3600}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700">
-            Image Model
-          </label>
-          <select
-            value={image.model}
-            onChange={(e) => updateImage({ model: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {IMAGE_MODELS.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700">
-            Image Quality
-          </label>
-          <select
-            value={image.quality}
-            onChange={(e) => updateImage({ quality: e.target.value as 'low' | 'medium' | 'high' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {QUALITY_OPTIONS.map((q) => (
-              <option key={q.value} value={q.value}>
-                {q.label}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
