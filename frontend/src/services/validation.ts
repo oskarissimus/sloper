@@ -101,6 +101,48 @@ export async function fetchDeepSeekModels(apiKey: string, showAll = false): Prom
   }
 }
 
+export async function fetchGeminiImageModels(apiKey: string): Promise<ModelFetchResult> {
+  if (!apiKey || apiKey.trim() === '') {
+    return { success: false, models: [], error: 'API key is required' };
+  }
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      if (response.status === 400 || response.status === 401 || response.status === 403) {
+        return { success: false, models: [], error: 'Invalid Google API key' };
+      }
+      const error = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        models: [],
+        error: error.error?.message || `API error: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    const models = (data.models as { name: string; supportedGenerationMethods?: string[] }[])
+      .filter(m =>
+        m.name.includes('image') &&
+        m.supportedGenerationMethods?.includes('generateContent')
+      )
+      .map(m => m.name.replace('models/', ''))
+      .sort((a, b) => a.localeCompare(b));
+
+    return { success: true, models };
+  } catch (err) {
+    return {
+      success: false,
+      models: [],
+      error: err instanceof Error ? err.message : 'Network error fetching models',
+    };
+  }
+}
+
 export async function validateOpenAiKey(apiKey: string): Promise<ValidationResult> {
   if (!apiKey || apiKey.trim() === '') {
     return { valid: false, error: 'API key is required' };

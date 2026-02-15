@@ -23,10 +23,13 @@ test('generates a 1-scene video end-to-end', async ({ page }) => {
   await expect(llmModelSelect).toBeEnabled({ timeout: 10_000 });
   await llmModelSelect.selectOption(providers.llm.model);
 
-  // Image: select provider, fill API key, select model, set quality
+  // Image: select provider, fill API key, wait for models, select model
   await imageSection.getByRole('combobox').first().selectOption(providers.image.provider);
   await imageSection.getByRole('textbox').fill(providers.image.apiKey);
-  await imageSection.getByRole('combobox').nth(1).selectOption(providers.image.model);
+
+  const imageModelSelect = imageSection.getByRole('combobox').nth(1);
+  await expect(imageModelSelect).toBeEnabled({ timeout: 10_000 });
+  await imageModelSelect.selectOption(providers.image.model);
 
   if (providers.image.provider === 'openai') {
     await imageSection.getByRole('combobox').nth(2).selectOption('low');

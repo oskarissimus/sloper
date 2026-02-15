@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useConfig } from '../../contexts/ConfigContext';
+import { fetchGeminiImageModels } from '../../services/validation';
 
 type ImageProvider = 'openai' | 'nanoBanana';
 
@@ -7,11 +8,6 @@ const OPENAI_IMAGE_MODELS = [
   { id: 'gpt-image-1', name: 'GPT Image 1 (DALL-E 3)' },
   { id: 'dall-e-3', name: 'DALL-E 3' },
   { id: 'dall-e-2', name: 'DALL-E 2' },
-];
-
-const NANO_BANANA_MODELS = [
-  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image' },
-  { id: 'gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image (Preview)' },
 ];
 
 const QUALITY_OPTIONS = [
@@ -22,23 +18,61 @@ const QUALITY_OPTIONS = [
 
 const ASPECT_RATIOS = ['16:9', '9:16', '4:3', '3:4', '1:1'];
 
+interface FetchState {
+  loading: boolean;
+  models: string[];
+  error: string | null;
+}
+
 export function ImageProviderSelect() {
   const { config, updateImage, updateApiKeys } = useConfig();
   const { provider, model, quality, aspectRatio } = config.image;
 
   const [showApiKey, setShowApiKey] = useState(false);
+  const [fetchState, setFetchState] = useState<FetchState>({
+    loading: false,
+    models: [],
+    error: null,
+  });
 
   const apiKey =
     provider === 'openai' ? config.apiKeys.openai : config.apiKeys.google;
-  const models =
-    provider === 'openai' ? OPENAI_IMAGE_MODELS : NANO_BANANA_MODELS;
+
+  const fetchModels = useCallback(async () => {
+    if (provider !== 'nanoBanana') return;
+
+    const key = config.apiKeys.google;
+    if (!key || key.trim() === '') {
+      setFetchState({ loading: false, models: [], error: null });
+      return;
+    }
+
+    setFetchState(prev => ({ ...prev, loading: true, error: null }));
+
+    const result = await fetchGeminiImageModels(key);
+
+    if (result.success) {
+      setFetchState({ loading: false, models: result.models, error: null });
+      if (result.models.length > 0 && !result.models.includes(model)) {
+        updateImage({ model: result.models[0] });
+      }
+    } else {
+      setFetchState({ loading: false, models: [], error: result.error || 'Failed to fetch models' });
+    }
+  }, [provider, config.apiKeys.google, model, updateImage]);
+
+  useEffect(() => {
+    const timer = setTimeout(fetchModels, 500);
+    return () => clearTimeout(timer);
+  }, [fetchModels]);
 
   const handleProviderChange = (newProvider: ImageProvider) => {
     const firstModel =
-      newProvider === 'openai'
-        ? OPENAI_IMAGE_MODELS[0].id
-        : NANO_BANANA_MODELS[0].id;
+      newProvider === 'openai' ? OPENAI_IMAGE_MODELS[0].id : '';
     updateImage({ provider: newProvider, model: firstModel });
+    if (newProvider === 'nanoBanana') {
+      setFetchState({ loading: false, models: [], error: null });
+    }
   };
 
   const handleApiKeyChange = (value: string) => {
@@ -104,17 +138,43 @@ export function ImageProviderSelect() {
         <label className="block text-sm font-medium text-gray-700">
           Image Model
         </label>
-        <select
-          value={model}
-          onChange={(e) => updateImage({ model: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
+        {provider === 'openai' ? (
+          <select
+            value={model}
+            onChange={(e) => updateImage({ model: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {OPENAI_IMAGE_MODELS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <>
+            <select
+              value={model}
+              onChange={(e) => updateImage({ model: e.target.value })}
+              disabled={fetchState.loading || fetchState.models.length === 0}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              {fetchState.loading ? (
+                <option>Loading models...</option>
+              ) : fetchState.models.length === 0 ? (
+                <option>Enter API key first</option>
+              ) : (
+                fetchState.models.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))
+              )}
+            </select>
+            {fetchState.error && (
+              <p className="text-sm text-red-600">{fetchState.error}</p>
+            )}
+          </>
+        )}
       </div>
 
       {/* Quality - OpenAI only */}
