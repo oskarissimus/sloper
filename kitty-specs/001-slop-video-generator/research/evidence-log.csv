@@ -1,9 +1,0 @@
-timestamp,source_type,citation,key_finding,confidence,notes
-2025-11-26T12:00:00Z,web,openai-streaming-docs,"OpenAI streaming uses SSE format with 'data: {json}' lines ending in 'data: [DONE]'",high,Native fetch + ReadableStream sufficient for parsing
-2025-11-26T12:00:00Z,web,openai-streaming-docs,"CORS headers present - browser direct calls supported",high,No proxy needed for OpenAI
-2025-11-26T12:00:00Z,web,openai-images-docs,"Image generation returns b64_json or url; b64_json recommended to avoid CORS on image URLs",high,Use b64_json for browser
-2025-11-26T12:00:00Z,web,elevenlabs-tts-docs,"ElevenLabs supports previous_text and next_text for speech context",high,Enables natural transitions between scenes
-2025-11-26T12:00:00Z,web,elevenlabs-tts-docs,"Alignment/timestamp data available with with_timestamps parameter",medium,Need to verify exact response format
-2025-11-26T12:00:00Z,web,deepseek-api-docs,"DeepSeek uses OpenAI-compatible API format",high,Same streaming implementation works
-2025-11-26T12:00:00Z,web,deepseek-api-docs,"DeepSeek CORS support unconfirmed",low,May need to test in browser or add fallback
-2025-11-26T12:00:00Z,web,ffmpeg-docs,"FFmpeg concat demuxer for combining video segments",high,Standard approach for image slideshow

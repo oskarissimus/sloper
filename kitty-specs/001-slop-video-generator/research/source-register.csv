@@ -1,7 +1,0 @@
-source_id,citation,url,accessed_date,relevance,status
-openai-streaming-docs,"OpenAI API Reference - Chat Completions",https://platform.openai.com/docs/api-reference/chat/create,2025-11-26,high,reviewed
-openai-images-docs,"OpenAI API Reference - Images",https://platform.openai.com/docs/api-reference/images/create,2025-11-26,high,reviewed
-elevenlabs-tts-docs,"ElevenLabs API Reference - Text to Speech",https://elevenlabs.io/docs/api-reference/text-to-speech,2025-11-26,high,reviewed
-deepseek-api-docs,"DeepSeek API Documentation",https://platform.deepseek.com/api-docs,2025-11-26,medium,reviewed
-ffmpeg-docs,"FFmpeg Documentation",https://ffmpeg.org/documentation.html,2025-11-26,high,reviewed
-vite-docs,"Vite Official Documentation",https://vitejs.dev/guide/,2025-11-26,medium,reviewed
