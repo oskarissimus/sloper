@@ -39,7 +39,7 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: 'cd ../backend && source venv/bin/activate && uvicorn src.main:app --port 8000',
+      command: 'cd ../backend && . venv/bin/activate && uvicorn src.main:app --port 8000',
       url: 'http://localhost:8000/docs',
       reuseExistingServer: !isCI,
       timeout: 30_000,
