@@ -21,7 +21,7 @@ const LLM_PROVIDER_KEY_MAP: Record<string, string> = {
 
 const IMAGE_PROVIDER_KEY_MAP: Record<string, string> = {
   openai: 'E2E_OPENAI_API_KEY',
-  nanoBanana: 'E2E_GOOGLE_API_KEY',
+  google: 'E2E_GOOGLE_API_KEY',
 };
 
 function requireEnv(name: string): string {

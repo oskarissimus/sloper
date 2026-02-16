@@ -4,7 +4,7 @@ import { useScenes } from '../contexts/SceneContext';
 import { useAssets } from '../contexts/AssetContext';
 import {
   generateImage,
-  generateNanoBananaImage,
+  generateGoogleImage,
   deriveAspectRatio,
   processImage,
   imageLimiter,
@@ -41,7 +41,7 @@ export function useAssetGeneration() {
     const { width, height } = config.video.resolution;
     const size = `${width}x${height}`;
     const total = scenes.length;
-    const isNanoBanana = config.image.provider === 'nanoBanana';
+    const isGoogle = config.image.provider === 'google';
 
     setProgress((prev) => ({ ...prev, imagesTotal: total, imagesComplete: 0, imagesFailed: 0 }));
 
@@ -57,9 +57,9 @@ export function useAssetGeneration() {
         try {
           let result;
 
-          if (isNanoBanana) {
+          if (isGoogle) {
             const aspectRatio = config.image.aspectRatio || deriveAspectRatio(width, height);
-            result = await generateNanoBananaImage(config.apiKeys.google ?? '', {
+            result = await generateGoogleImage(config.apiKeys.google ?? '', {
               prompt: scene.imageDescription,
               model: config.image.model,
               aspectRatio,
@@ -192,9 +192,9 @@ export function useAssetGeneration() {
           const size = `${width}x${height}`;
           let result;
 
-          if (config.image.provider === 'nanoBanana') {
+          if (config.image.provider === 'google') {
             const aspectRatio = config.image.aspectRatio || deriveAspectRatio(width, height);
-            result = await generateNanoBananaImage(config.apiKeys.google ?? '', {
+            result = await generateGoogleImage(config.apiKeys.google ?? '', {
               prompt: scene.imageDescription,
               model: config.image.model,
               aspectRatio,

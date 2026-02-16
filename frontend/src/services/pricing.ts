@@ -153,13 +153,13 @@ function lookupGeminiImagePrice(model: string): number | null {
 }
 
 export function estimateImageCost(
-  provider: 'openai' | 'nanoBanana',
+  provider: 'openai' | 'google',
   model: string,
   quality: 'low' | 'medium' | 'high',
   resolution: { width: number; height: number },
   numScenes: number
 ): ImageCostEstimate {
-  if (provider === 'nanoBanana') {
+  if (provider === 'google') {
     const perImage = lookupGeminiImagePrice(model);
     return {
       perImage,

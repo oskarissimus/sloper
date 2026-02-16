@@ -46,7 +46,7 @@ function loadPersistedConfig(): ConfigState {
       ...defaultConfig,
       apiKeys: { ...defaultConfig.apiKeys, ...parsed.apiKeys },
       llm: { ...defaultConfig.llm, provider: parsed.llm?.provider ?? defaultConfig.llm.provider },
-      image: { ...defaultConfig.image, provider: parsed.image?.provider ?? defaultConfig.image.provider },
+      image: { ...defaultConfig.image, provider: (parsed.image?.provider === 'nanoBanana' ? 'google' : parsed.image?.provider) ?? defaultConfig.image.provider },
       tts: { ...defaultConfig.tts, plan: parsed.tts?.plan ?? defaultConfig.tts.plan },
     };
   } catch {

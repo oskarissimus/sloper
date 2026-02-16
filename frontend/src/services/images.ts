@@ -416,9 +416,9 @@ export class ConcurrencyLimiter<T> {
   }
 }
 
-// Nano Banana (Gemini image generation) support
+// Google (Gemini image generation) support
 
-export interface NanoBananaGenerationOptions {
+export interface GoogleImageGenerationOptions {
   prompt: string;
   model: string;
   aspectRatio: string;
@@ -450,11 +450,11 @@ export function deriveAspectRatio(width: number, height: number): string {
 }
 
 /**
- * Generate an image using Google's Gemini image generation API (Nano Banana)
+ * Generate an image using Google's Gemini image generation API
  */
-export async function generateNanoBananaImage(
+export async function generateGoogleImage(
   apiKey: string,
-  options: NanoBananaGenerationOptions
+  options: GoogleImageGenerationOptions
 ): Promise<ImageResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent`;
 
@@ -482,7 +482,7 @@ export async function generateNanoBananaImage(
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(
-      error.error?.message || `Nano Banana image generation failed: ${response.status}`
+      error.error?.message || `Google image generation failed: ${response.status}`
     );
   }
 
@@ -491,12 +491,12 @@ export async function generateNanoBananaImage(
   // Find the inline image data in the response
   const candidates = result.candidates;
   if (!candidates || candidates.length === 0) {
-    throw new Error('No candidates in Nano Banana response');
+    throw new Error('No candidates in Google image response');
   }
 
   const parts = candidates[0].content?.parts;
   if (!parts) {
-    throw new Error('No parts in Nano Banana response');
+    throw new Error('No parts in Google image response');
   }
 
   const imagePart = parts.find(
@@ -507,7 +507,7 @@ export async function generateNanoBananaImage(
     // Likely a safety filter refusal - check for text response
     const textPart = parts.find((p: { text?: string }) => p.text);
     const reason = textPart?.text || 'Unknown reason';
-    throw new Error(`Nano Banana refused to generate image: ${reason}`);
+    throw new Error(`Google refused to generate image: ${reason}`);
   }
 
   const { mimeType, data: base64 } = imagePart.inlineData;

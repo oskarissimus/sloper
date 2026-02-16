@@ -17,7 +17,7 @@ export interface ConfigState {
     targetDuration: number;
   };
   image: {
-    provider: 'openai' | 'nanoBanana';
+    provider: 'openai' | 'google';
     model: string;
     quality: 'low' | 'medium' | 'high';
     aspectRatio?: string;

@@ -4,7 +4,7 @@ import { fetchGeminiImageModels } from '../../services/validation';
 import { estimateImageCost, SCRAPED_AT } from '../../services/pricing';
 import { CostEstimate } from './CostEstimate';
 
-type ImageProvider = 'openai' | 'nanoBanana';
+type ImageProvider = 'openai' | 'google';
 
 const OPENAI_IMAGE_MODELS = [
   { id: 'gpt-image-1', name: 'GPT Image 1 (DALL-E 3)' },
@@ -47,7 +47,7 @@ export function ImageProviderSelect() {
   useEffect(() => { updateImageRef.current = updateImage; }, [updateImage]);
 
   const fetchModels = useCallback(async () => {
-    if (provider !== 'nanoBanana') return;
+    if (provider !== 'google') return;
 
     const key = config.apiKeys.google;
     if (!key || key.trim() === '') {
@@ -78,7 +78,7 @@ export function ImageProviderSelect() {
     const firstModel =
       newProvider === 'openai' ? OPENAI_IMAGE_MODELS[0].id : '';
     updateImage({ provider: newProvider, model: firstModel });
-    if (newProvider === 'nanoBanana') {
+    if (newProvider === 'google') {
       setFetchState({ loading: false, models: [], error: null });
     }
   };
@@ -115,7 +115,7 @@ export function ImageProviderSelect() {
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="openai">OpenAI (DALL-E)</option>
-          <option value="nanoBanana">Nano Banana (Gemini)</option>
+          <option value="google">Google</option>
         </select>
       </div>
 
@@ -215,8 +215,8 @@ export function ImageProviderSelect() {
         </div>
       )}
 
-      {/* Aspect Ratio - Nano Banana only */}
-      {provider === 'nanoBanana' && (
+      {/* Aspect Ratio - Google only */}
+      {provider === 'google' && (
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700">
             Aspect Ratio
