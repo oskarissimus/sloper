@@ -245,22 +245,20 @@ export function ImageProviderSelect() {
 
       <CostEstimate
         label="Est. image cost"
-        amount={imageEstimate.isGemini ? null : imageEstimate.total}
+        amount={imageEstimate.total}
         detail={
-          imageEstimate.isGemini
-            ? 'Gemini image generation — check Google pricing'
-            : !imageEstimate.modelFound
-              ? `Model "${model}" not in pricing data`
-              : imageEstimate.perImage !== null
-                ? `$${imageEstimate.perImage.toFixed(3)}/image × ${numScenes} scenes`
-                : undefined
+          !imageEstimate.modelFound
+            ? imageEstimate.isGemini
+              ? `Model "${model}" not in pricing data — check Google pricing`
+              : `Model "${model}" not in pricing data`
+            : imageEstimate.perImage !== null
+              ? `$${imageEstimate.perImage.toFixed(3)}/image × ${numScenes} scenes`
+              : undefined
         }
         note={
-          imageEstimate.isGemini
-            ? undefined
-            : imageEstimate.modelFound
-              ? `Prices scraped ${new Date(SCRAPED_AT).toLocaleDateString()}`
-              : undefined
+          imageEstimate.modelFound
+            ? `Prices scraped ${new Date(SCRAPED_AT).toLocaleDateString()}`
+            : undefined
         }
       />
     </div>

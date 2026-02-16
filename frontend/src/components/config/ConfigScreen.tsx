@@ -120,7 +120,7 @@ export function ConfigScreen() {
             {totalEst !== null
               ? `~$${totalEst < 0.01 ? totalEst.toFixed(4) : totalEst.toFixed(2)}`
               : 'varies'}
-            {imageEst.isGemini && ' + Gemini images'}
+            {imageEst.isGemini && !imageEst.modelFound && ' + Gemini images'}
           </span>
         </div>
         <p className="text-xs text-gray-400 mt-1">

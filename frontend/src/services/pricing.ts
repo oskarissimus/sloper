@@ -37,6 +37,7 @@ export const SCRAPED_AT = pricingData.scrapedAt;
 
 const llmPricing = pricingData.llm as Record<string, LlmPricing>;
 const imagePricing = pricingData.image as Record<string, Record<string, Record<string, number>>>;
+const geminiImagePricing = pricingData.geminiImage as Record<string, number>;
 const ttsPricing = pricingData.tts as Record<string, Record<string, number | null>>;
 
 const DEFAULT_LLM_MODEL = 'gpt-4o';
@@ -133,6 +134,24 @@ function normalizeQualityForPricing(
   return availableQualities[0] || quality;
 }
 
+/**
+ * Look up Gemini image model pricing.
+ * Tries exact match first, then prefix match against known models.
+ */
+function lookupGeminiImagePrice(model: string): number | null {
+  // Exact match
+  if (model in geminiImagePricing) return geminiImagePricing[model];
+
+  // Prefix match: find the longest matching key
+  let best: { key: string; price: number } | null = null;
+  for (const [key, price] of Object.entries(geminiImagePricing)) {
+    if (model.startsWith(key) && (!best || key.length > best.key.length)) {
+      best = { key, price };
+    }
+  }
+  return best?.price ?? null;
+}
+
 export function estimateImageCost(
   provider: 'openai' | 'nanoBanana',
   model: string,
@@ -141,7 +160,13 @@ export function estimateImageCost(
   numScenes: number
 ): ImageCostEstimate {
   if (provider === 'nanoBanana') {
-    return { perImage: null, total: null, isGemini: true, modelFound: false };
+    const perImage = lookupGeminiImagePrice(model);
+    return {
+      perImage,
+      total: perImage !== null ? perImage * numScenes : null,
+      isGemini: true,
+      modelFound: perImage !== null,
+    };
   }
 
   const modelPricing = imagePricing[model];
