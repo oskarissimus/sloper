@@ -449,10 +449,71 @@ export function deriveAspectRatio(width: number, height: number): string {
   return closest.label;
 }
 
+function isImagenModel(model: string): boolean {
+  return model.startsWith('imagen-');
+}
+
+function base64ToImageResult(base64: string, mimeType: string): ImageResult {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type: mimeType });
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+  return { data: blob, dataUrl };
+}
+
 /**
- * Generate an image using Google's Gemini image generation API
+ * Generate an image using Google's Imagen API (:predict endpoint)
  */
-export async function generateGoogleImage(
+async function generateImagenImage(
+  apiKey: string,
+  options: GoogleImageGenerationOptions
+): Promise<ImageResult> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:predict`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    },
+    body: JSON.stringify({
+      instances: [{ prompt: options.prompt }],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: options.aspectRatio,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(
+      error.error?.message || `Imagen image generation failed: ${response.status}`
+    );
+  }
+
+  const result = await response.json();
+
+  const predictions = result.predictions;
+  if (!predictions || predictions.length === 0) {
+    throw new Error('No predictions in Imagen response');
+  }
+
+  const prediction = predictions[0];
+  if (!prediction.bytesBase64Encoded) {
+    throw new Error('No image data in Imagen response');
+  }
+
+  return base64ToImageResult(prediction.bytesBase64Encoded, prediction.mimeType || 'image/png');
+}
+
+/**
+ * Generate an image using Google's Gemini image generation API (:generateContent endpoint)
+ */
+async function generateGeminiImage(
   apiKey: string,
   options: GoogleImageGenerationOptions
 ): Promise<ImageResult> {
@@ -488,7 +549,6 @@ export async function generateGoogleImage(
 
   const result = await response.json();
 
-  // Find the inline image data in the response
   const candidates = result.candidates;
   if (!candidates || candidates.length === 0) {
     throw new Error('No candidates in Google image response');
@@ -504,24 +564,25 @@ export async function generateGoogleImage(
   );
 
   if (!imagePart) {
-    // Likely a safety filter refusal - check for text response
     const textPart = parts.find((p: { text?: string }) => p.text);
     const reason = textPart?.text || 'Unknown reason';
     throw new Error(`Google refused to generate image: ${reason}`);
   }
 
-  const { mimeType, data: base64 } = imagePart.inlineData;
+  return base64ToImageResult(imagePart.inlineData.data, imagePart.inlineData.mimeType);
+}
 
-  // Convert base64 to Blob
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+/**
+ * Generate an image using Google APIs — routes to Imagen (:predict) or Gemini (:generateContent)
+ */
+export async function generateGoogleImage(
+  apiKey: string,
+  options: GoogleImageGenerationOptions
+): Promise<ImageResult> {
+  if (isImagenModel(options.model)) {
+    return generateImagenImage(apiKey, options);
   }
-  const blob = new Blob([bytes], { type: mimeType });
-  const dataUrl = `data:${mimeType};base64,${base64}`;
-
-  return { data: blob, dataUrl };
+  return generateGeminiImage(apiKey, options);
 }
 
 // Export singleton limiters

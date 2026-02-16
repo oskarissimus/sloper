@@ -127,8 +127,10 @@ export async function fetchGeminiImageModels(apiKey: string): Promise<ModelFetch
     const data = await response.json();
     const models = (data.models as { name: string; supportedGenerationMethods?: string[] }[])
       .filter(m =>
-        m.name.includes('image') &&
-        m.supportedGenerationMethods?.includes('generateContent')
+        m.name.includes('image') && (
+          m.supportedGenerationMethods?.includes('generateContent') ||
+          m.supportedGenerationMethods?.includes('predict')
+        )
       )
       .map(m => m.name.replace('models/', ''))
       .sort((a, b) => a.localeCompare(b));
