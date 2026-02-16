@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useConfig } from '../../contexts/ConfigContext';
 import { fetchGeminiImageModels } from '../../services/validation';
 
@@ -38,6 +38,12 @@ export function ImageProviderSelect() {
   const apiKey =
     provider === 'openai' ? config.apiKeys.openai : config.apiKeys.google;
 
+  // Refs for values needed inside fetchModels but that shouldn't trigger re-creation
+  const modelRef = useRef(model);
+  useEffect(() => { modelRef.current = model; }, [model]);
+  const updateImageRef = useRef(updateImage);
+  useEffect(() => { updateImageRef.current = updateImage; }, [updateImage]);
+
   const fetchModels = useCallback(async () => {
     if (provider !== 'nanoBanana') return;
 
@@ -53,13 +59,13 @@ export function ImageProviderSelect() {
 
     if (result.success) {
       setFetchState({ loading: false, models: result.models, error: null });
-      if (result.models.length > 0 && !result.models.includes(model)) {
-        updateImage({ model: result.models[0] });
+      if (result.models.length > 0 && !result.models.includes(modelRef.current)) {
+        updateImageRef.current({ model: result.models[0] });
       }
     } else {
       setFetchState({ loading: false, models: [], error: result.error || 'Failed to fetch models' });
     }
-  }, [provider, config.apiKeys.google, model, updateImage]);
+  }, [provider, config.apiKeys.google]);
 
   useEffect(() => {
     const timer = setTimeout(fetchModels, 500);

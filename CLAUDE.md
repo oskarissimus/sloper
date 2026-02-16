@@ -46,9 +46,9 @@ cd frontend
 npm install              # Install dependencies
 npm run dev              # Start dev server (localhost:5173)
 npm run build            # Production build
-npm run test             # Run Vitest tests
 npm run lint             # ESLint
 npm run typecheck        # TypeScript checks
+npm run test:e2e         # Run Playwright e2e tests
 ```
 
 ### Backend

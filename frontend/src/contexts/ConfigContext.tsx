@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { ConfigState } from '../types';
 
@@ -84,52 +84,52 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     }
   }, [config.apiKeys, config.llm.provider, config.image.provider]);
 
-  const updateApiKeys = (keys: Partial<ConfigState['apiKeys']>) => {
+  const updateApiKeys = useCallback((keys: Partial<ConfigState['apiKeys']>) => {
     setConfig((prev) => ({
       ...prev,
       apiKeys: { ...prev.apiKeys, ...keys },
     }));
-  };
+  }, []);
 
-  const updateLlm = (llm: Partial<ConfigState['llm']>) => {
+  const updateLlm = useCallback((llm: Partial<ConfigState['llm']>) => {
     setConfig((prev) => ({
       ...prev,
       llm: { ...prev.llm, ...llm },
     }));
-  };
+  }, []);
 
-  const updateVideo = (video: Partial<ConfigState['video']>) => {
+  const updateVideo = useCallback((video: Partial<ConfigState['video']>) => {
     setConfig((prev) => ({
       ...prev,
       video: { ...prev.video, ...video },
     }));
-  };
+  }, []);
 
-  const updateImage = (image: Partial<ConfigState['image']>) => {
+  const updateImage = useCallback((image: Partial<ConfigState['image']>) => {
     setConfig((prev) => ({
       ...prev,
       image: { ...prev.image, ...image },
     }));
-  };
+  }, []);
 
-  const updateTts = (tts: Partial<ConfigState['tts']>) => {
+  const updateTts = useCallback((tts: Partial<ConfigState['tts']>) => {
     setConfig((prev) => ({
       ...prev,
       tts: { ...prev.tts, ...tts },
     }));
-  };
+  }, []);
 
-  const updateTemperature = (temperature: number) => {
+  const updateTemperature = useCallback((temperature: number) => {
     setConfig((prev) => ({
       ...prev,
       temperature,
     }));
-  };
+  }, []);
 
-  const resetConfig = () => {
+  const resetConfig = useCallback(() => {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
     setConfig(defaultConfig);
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -142,7 +142,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       updateTemperature,
       resetConfig,
     }),
-    [config]
+    [config, updateApiKeys, updateLlm, updateVideo, updateImage, updateTts, updateTemperature, resetConfig]
   );
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useConfig } from '../../contexts/ConfigContext';
 import { fetchOpenAiModels, fetchDeepSeekModels } from '../../services/validation';
 
@@ -25,6 +25,12 @@ export function LlmProviderSelect() {
   // Get the API key for the current provider
   const apiKey = provider === 'openai' ? config.apiKeys.openai : config.apiKeys.deepseek;
 
+  // Refs for values needed inside fetchModels but that shouldn't trigger re-creation
+  const modelRef = useRef(model);
+  useEffect(() => { modelRef.current = model; }, [model]);
+  const updateLlmRef = useRef(updateLlm);
+  useEffect(() => { updateLlmRef.current = updateLlm; }, [updateLlm]);
+
   // Fetch models when API key changes or showAllModels toggles
   const fetchModels = useCallback(async () => {
     const key = provider === 'openai' ? config.apiKeys.openai : config.apiKeys.deepseek;
@@ -42,13 +48,13 @@ export function LlmProviderSelect() {
     if (result.success) {
       setFetchState({ loading: false, models: result.models, error: null });
       // Auto-select first model if current model is not in the list
-      if (result.models.length > 0 && !result.models.includes(model)) {
-        updateLlm({ model: result.models[0] });
+      if (result.models.length > 0 && !result.models.includes(modelRef.current)) {
+        updateLlmRef.current({ model: result.models[0] });
       }
     } else {
       setFetchState({ loading: false, models: [], error: result.error || 'Failed to fetch models' });
     }
-  }, [provider, config.apiKeys.openai, config.apiKeys.deepseek, showAllModels, model, updateLlm]);
+  }, [provider, config.apiKeys.openai, config.apiKeys.deepseek, showAllModels]);
 
   // Debounced fetch on API key change
   useEffect(() => {
