@@ -27,6 +27,7 @@ export interface ConfigState {
     voiceId: string;
     speed: number;
     concurrency: number;
+    plan: 'free' | 'starter' | 'creator' | 'pro' | 'scale' | 'business';
   };
   temperature: number;
 }

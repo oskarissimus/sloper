@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useConfig } from '../../contexts/ConfigContext';
 import { fetchGeminiImageModels } from '../../services/validation';
+import { estimateImageCost, SCRAPED_AT } from '../../services/pricing';
+import { CostEstimate } from './CostEstimate';
 
 type ImageProvider = 'openai' | 'nanoBanana';
 
@@ -88,6 +90,12 @@ export function ImageProviderSelect() {
       updateApiKeys({ google: value || null });
     }
   };
+
+  const { numScenes } = config.video;
+  const imageEstimate = useMemo(
+    () => estimateImageCost(provider, model, quality, config.video.resolution, numScenes),
+    [provider, model, quality, config.video.resolution, numScenes]
+  );
 
   const providerLabel = provider === 'openai' ? 'OpenAI' : 'Google';
   const placeholder = provider === 'openai' ? 'sk-...' : 'AIza...';
@@ -234,6 +242,27 @@ export function ImageProviderSelect() {
           </select>
         </div>
       )}
+
+      <CostEstimate
+        label="Est. image cost"
+        amount={imageEstimate.isGemini ? null : imageEstimate.total}
+        detail={
+          imageEstimate.isGemini
+            ? 'Gemini image generation — check Google pricing'
+            : !imageEstimate.modelFound
+              ? `Model "${model}" not in pricing data`
+              : imageEstimate.perImage !== null
+                ? `$${imageEstimate.perImage.toFixed(3)}/image × ${numScenes} scenes`
+                : undefined
+        }
+        note={
+          imageEstimate.isGemini
+            ? undefined
+            : imageEstimate.modelFound
+              ? `Prices scraped ${new Date(SCRAPED_AT).toLocaleDateString()}`
+              : undefined
+        }
+      />
     </div>
   );
 }

@@ -32,6 +32,7 @@ const defaultConfig: ConfigState = {
     voiceId: 'Bx2lBwIZJBilRBVc3AGO',
     speed: 1.1,
     concurrency: 4,
+    plan: 'starter',
   },
   temperature: 0.7,
 };
@@ -46,6 +47,7 @@ function loadPersistedConfig(): ConfigState {
       apiKeys: { ...defaultConfig.apiKeys, ...parsed.apiKeys },
       llm: { ...defaultConfig.llm, provider: parsed.llm?.provider ?? defaultConfig.llm.provider },
       image: { ...defaultConfig.image, provider: parsed.image?.provider ?? defaultConfig.image.provider },
+      tts: { ...defaultConfig.tts, plan: parsed.tts?.plan ?? defaultConfig.tts.plan },
     };
   } catch {
     return defaultConfig;
@@ -78,11 +80,12 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
         apiKeys: config.apiKeys,
         llm: { provider: config.llm.provider },
         image: { provider: config.image.provider },
+        tts: { plan: config.tts.plan },
       }));
     } catch {
       // localStorage may be unavailable (e.g. private browsing)
     }
-  }, [config.apiKeys, config.llm.provider, config.image.provider]);
+  }, [config.apiKeys, config.llm.provider, config.image.provider, config.tts.plan]);
 
   const updateApiKeys = useCallback((keys: Partial<ConfigState['apiKeys']>) => {
     setConfig((prev) => ({

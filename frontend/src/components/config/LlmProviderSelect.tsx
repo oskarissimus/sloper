@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useConfig } from '../../contexts/ConfigContext';
 import { fetchOpenAiModels, fetchDeepSeekModels } from '../../services/validation';
+import { estimateLlmCost, SCRAPED_AT } from '../../services/pricing';
+import { CostEstimate } from './CostEstimate';
 
 type Provider = 'openai' | 'deepseek';
 
@@ -74,6 +76,12 @@ export function LlmProviderSelect() {
       updateApiKeys({ deepseek: value || null });
     }
   };
+
+  const { numScenes, targetDuration } = config.video;
+  const llmEstimate = useMemo(
+    () => model ? estimateLlmCost(model, targetDuration, numScenes) : null,
+    [model, targetDuration, numScenes]
+  );
 
   const providerLabel = provider === 'openai' ? 'OpenAI' : 'DeepSeek';
   const placeholder = provider === 'openai' ? 'sk-...' : 'sk-...';
@@ -158,6 +166,19 @@ export function LlmProviderSelect() {
           <p className="text-sm text-red-600">{fetchState.error}</p>
         )}
       </div>
+
+      {llmEstimate && (
+        <CostEstimate
+          label="Est. LLM cost"
+          amount={llmEstimate.totalCost}
+          detail={`~${llmEstimate.promptTokens.toLocaleString()} prompt + ~${llmEstimate.completionTokens.toLocaleString()} completion tokens`}
+          note={
+            !llmEstimate.modelFound
+              ? `Model "${model}" not in pricing data; using gpt-4o rates`
+              : `Prices scraped ${new Date(SCRAPED_AT).toLocaleDateString()}`
+          }
+        />
+      )}
     </div>
   );
 }

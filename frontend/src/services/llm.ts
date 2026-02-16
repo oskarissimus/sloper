@@ -1,3 +1,7 @@
+import pricingData from '../data/pricing.json';
+
+const LLM_PRICING = pricingData.llm as Record<string, { input: number; output: number }>;
+
 export interface TokenUsage {
   prompt: number;
   completion: number;
@@ -217,18 +221,12 @@ export function calculateCost(
   model: string,
   tokenUsage: TokenUsage
 ): number {
-  // Pricing per 1M tokens (input/output)
-  const PRICING: Record<string, { prompt: number; completion: number }> = {
-    'gpt-4o': { prompt: 5, completion: 15 },
-    'gpt-4o-mini': { prompt: 0.15, completion: 0.60 },
-    'gpt-4-turbo': { prompt: 10, completion: 30 },
-    'deepseek-chat': { prompt: 0.14, completion: 0.28 },
-    'deepseek-coder': { prompt: 0.14, completion: 0.28 },
-  };
+  const pricing = LLM_PRICING[model];
+  const fallback = LLM_PRICING['gpt-4o'] || { input: 2.50, output: 10.00 };
+  const rates = pricing || fallback;
 
-  const pricing = PRICING[model] || PRICING['gpt-4o'];
-  const promptCost = (tokenUsage.prompt / 1_000_000) * pricing.prompt;
-  const completionCost = (tokenUsage.completion / 1_000_000) * pricing.completion;
+  const promptCost = (tokenUsage.prompt / 1_000_000) * rates.input;
+  const completionCost = (tokenUsage.completion / 1_000_000) * rates.output;
 
   return promptCost + completionCost;
 }

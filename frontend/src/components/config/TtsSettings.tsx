@@ -1,4 +1,17 @@
+import { useMemo } from 'react';
 import { useConfig } from '../../contexts/ConfigContext';
+import { estimateTtsCost, SCRAPED_AT } from '../../services/pricing';
+import type { TtsPlan } from '../../services/pricing';
+import { CostEstimate } from './CostEstimate';
+
+const TTS_PLANS: { value: TtsPlan; label: string }[] = [
+  { value: 'free', label: 'Free' },
+  { value: 'starter', label: 'Starter' },
+  { value: 'creator', label: 'Creator' },
+  { value: 'pro', label: 'Pro' },
+  { value: 'scale', label: 'Scale' },
+  { value: 'business', label: 'Business' },
+];
 
 const TTS_MODELS = [
   { id: 'eleven_multilingual_v2', name: 'Multilingual v2' },
@@ -17,6 +30,11 @@ const VOICE_PRESETS = [
 export function TtsSettings() {
   const { config, updateTts } = useConfig();
   const { tts } = config;
+
+  const ttsEstimate = useMemo(
+    () => estimateTtsCost(tts.model, tts.plan, config.video.targetDuration),
+    [tts.model, tts.plan, config.video.targetDuration]
+  );
 
   return (
     <div className="space-y-4">
@@ -109,6 +127,43 @@ export function TtsSettings() {
           <span>10 (faster, may hit rate limits)</span>
         </div>
       </div>
+
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-700">
+          ElevenLabs Plan
+        </label>
+        <select
+          value={tts.plan}
+          onChange={(e) => updateTts({ plan: e.target.value as TtsPlan })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          {TTS_PLANS.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500">
+          Used for cost estimation only
+        </p>
+      </div>
+
+      <CostEstimate
+        label="Est. TTS cost"
+        amount={ttsEstimate.totalCost}
+        detail={
+          tts.plan === 'free'
+            ? 'Included in free plan quota'
+            : ttsEstimate.perKChars !== null
+              ? `~${ttsEstimate.totalChars.toLocaleString()} chars at $${ttsEstimate.perKChars}/1K chars`
+              : undefined
+        }
+        note={
+          tts.plan === 'free'
+            ? undefined
+            : `${tts.plan.charAt(0).toUpperCase() + tts.plan.slice(1)} tier. Prices scraped ${new Date(SCRAPED_AT).toLocaleDateString()}`
+        }
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useConfig } from '../../contexts/ConfigContext';
 import { useWorkflow } from '../../contexts/WorkflowContext';
 import { ApiKeyInputs } from './ApiKeyInputs';
@@ -7,12 +7,36 @@ import { ImageProviderSelect } from './ImageProviderSelect';
 import { VideoSettings } from './VideoSettings';
 import { TtsSettings } from './TtsSettings';
 import { validateElevenLabsKey } from '../../services/validation';
+import {
+  estimateLlmCost,
+  estimateImageCost,
+  estimateTtsCost,
+  estimateTotalCost,
+  SCRAPED_AT,
+} from '../../services/pricing';
 
 export function ConfigScreen() {
   const { stage, setStage, setError } = useWorkflow();
   const { config } = useConfig();
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const llmEst = useMemo(
+    () => estimateLlmCost(config.llm.model, config.video.targetDuration, config.video.numScenes),
+    [config.llm.model, config.video.targetDuration, config.video.numScenes]
+  );
+  const imageEst = useMemo(
+    () => estimateImageCost(config.image.provider, config.image.model, config.image.quality, config.video.resolution, config.video.numScenes),
+    [config.image.provider, config.image.model, config.image.quality, config.video.resolution, config.video.numScenes]
+  );
+  const ttsEst = useMemo(
+    () => estimateTtsCost(config.tts.model, config.tts.plan, config.video.targetDuration),
+    [config.tts.model, config.tts.plan, config.video.targetDuration]
+  );
+  const totalEst = useMemo(
+    () => estimateTotalCost(llmEst, imageEst, ttsEst),
+    [llmEst, imageEst, ttsEst]
+  );
 
   if (stage !== 'config') return null;
 
@@ -88,6 +112,21 @@ export function ConfigScreen() {
         <ApiKeyInputs />
         <TtsSettings />
       </section>
+
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="flex items-baseline justify-between">
+          <span className="text-sm font-medium text-gray-700">Estimated Total Cost</span>
+          <span className="text-sm font-semibold text-gray-900">
+            {totalEst !== null
+              ? `~$${totalEst < 0.01 ? totalEst.toFixed(4) : totalEst.toFixed(2)}`
+              : 'varies'}
+            {imageEst.isGemini && ' + Gemini images'}
+          </span>
+        </div>
+        <p className="text-xs text-gray-400 mt-1">
+          Estimates only. Actual costs may vary. Prices scraped {new Date(SCRAPED_AT).toLocaleDateString()}.
+        </p>
+      </div>
 
       {validationError && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
