@@ -79,7 +79,6 @@ export interface AssetState {
 export type WorkflowStage = 'config' | 'scenes' | 'assets' | 'assembly' | 'output';
 
 export interface WorkflowState {
-  stage: WorkflowStage;
   isGenerating: boolean;
   error: string | null;
   tokenUsage: { prompt: number; completion: number } | null;

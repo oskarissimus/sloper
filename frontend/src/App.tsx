@@ -1,3 +1,4 @@
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { SceneProvider } from './contexts/SceneContext';
 import { AssetProvider } from './contexts/AssetContext';
@@ -31,11 +32,14 @@ function AppContent() {
         tabIndex={-1}
         aria-label={`Current stage: ${stage}`}
       >
-        <ConfigScreen />
-        <SceneGenerationScreen />
-        <AssetGenerationScreen />
-        <VideoAssemblyScreen />
-        <VideoOutputScreen />
+        <Routes>
+          <Route path="/config" element={<ConfigScreen />} />
+          <Route path="/scenes" element={<SceneGenerationScreen />} />
+          <Route path="/assets" element={<AssetGenerationScreen />} />
+          <Route path="/assembly" element={<VideoAssemblyScreen />} />
+          <Route path="/output" element={<VideoOutputScreen />} />
+          <Route path="*" element={<Navigate to="/config" replace />} />
+        </Routes>
       </main>
     </>
   );
@@ -45,15 +49,17 @@ function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <ConfigProvider>
-          <SceneProvider>
-            <AssetProvider>
-              <WorkflowProvider>
-                <AppContent />
-              </WorkflowProvider>
-            </AssetProvider>
-          </SceneProvider>
-        </ConfigProvider>
+        <HashRouter>
+          <ConfigProvider>
+            <SceneProvider>
+              <AssetProvider>
+                <WorkflowProvider>
+                  <AppContent />
+                </WorkflowProvider>
+              </AssetProvider>
+            </SceneProvider>
+          </ConfigProvider>
+        </HashRouter>
       </ToastProvider>
     </ErrorBoundary>
   );

@@ -57,10 +57,8 @@ function BackToConfigButton() {
 }
 
 export function SceneGenerationScreen() {
-  const { stage, error } = useWorkflow();
+  const { error } = useWorkflow();
   const { scenes, isStreaming } = useScenes();
-
-  if (stage !== 'scenes') return null;
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">

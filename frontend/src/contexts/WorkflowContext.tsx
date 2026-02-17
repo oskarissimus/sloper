@@ -1,15 +1,15 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import type { WorkflowState, WorkflowStage } from '../types';
+import type { WorkflowStage } from '../types';
 
-const defaultWorkflowState: WorkflowState = {
-  stage: 'config',
-  isGenerating: false,
-  error: null,
-  tokenUsage: null,
-  estimatedCost: null,
-  finalVideo: null,
-};
+const VALID_STAGES: Set<string> = new Set(['config', 'scenes', 'assets', 'assembly', 'output']);
+
+function stageFromPath(pathname: string): WorkflowStage {
+  const segment = pathname.replace(/^\//, '').split('/')[0];
+  if (VALID_STAGES.has(segment)) return segment as WorkflowStage;
+  return 'config';
+}
 
 interface WorkflowContextType {
   stage: WorkflowStage;
@@ -34,62 +34,59 @@ interface WorkflowProviderProps {
 }
 
 export function WorkflowProvider({ children }: WorkflowProviderProps) {
-  const [state, setState] = useState<WorkflowState>(defaultWorkflowState);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const setStage = (stage: WorkflowStage) => {
-    setState((prev) => ({
-      ...prev,
-      stage,
-    }));
-  };
+  const stage = stageFromPath(location.pathname);
 
-  const setIsGenerating = (generating: boolean) => {
-    setState((prev) => ({
-      ...prev,
-      isGenerating: generating,
-    }));
-  };
+  const [isGenerating, setIsGeneratingState] = useState(false);
+  const [error, setErrorState] = useState<string | null>(null);
+  const [tokenUsage, setTokenUsageState] = useState<{ prompt: number; completion: number } | null>(null);
+  const [estimatedCost, setEstimatedCostState] = useState<number | null>(null);
+  const [finalVideo, setFinalVideoState] = useState<Blob | null>(null);
 
-  const setError = (error: string | null) => {
-    setState((prev) => ({
-      ...prev,
-      error,
-    }));
-  };
+  const setStage = useCallback(
+    (s: WorkflowStage) => navigate('/' + s),
+    [navigate]
+  );
 
-  const setTokenUsage = (usage: { prompt: number; completion: number }) => {
-    setState((prev) => ({
-      ...prev,
-      tokenUsage: usage,
-    }));
-  };
+  const setIsGenerating = useCallback((generating: boolean) => {
+    setIsGeneratingState(generating);
+  }, []);
 
-  const setEstimatedCost = (cost: number) => {
-    setState((prev) => ({
-      ...prev,
-      estimatedCost: cost,
-    }));
-  };
+  const setError = useCallback((err: string | null) => {
+    setErrorState(err);
+  }, []);
 
-  const setFinalVideo = (video: Blob) => {
-    setState((prev) => ({
-      ...prev,
-      finalVideo: video,
-    }));
-  };
+  const setTokenUsage = useCallback((usage: { prompt: number; completion: number }) => {
+    setTokenUsageState(usage);
+  }, []);
 
-  const reset = () => {
-    setState(defaultWorkflowState);
-  };
+  const setEstimatedCost = useCallback((cost: number) => {
+    setEstimatedCostState(cost);
+  }, []);
+
+  const setFinalVideo = useCallback((video: Blob) => {
+    setFinalVideoState(video);
+  }, []);
+
+  const reset = useCallback(() => {
+    setIsGeneratingState(false);
+    setErrorState(null);
+    setTokenUsageState(null);
+    setEstimatedCostState(null);
+    setFinalVideoState(null);
+    navigate('/config');
+  }, [navigate]);
 
   const value = useMemo(
     () => ({
-      stage: state.stage,
-      isGenerating: state.isGenerating,
-      error: state.error,
-      tokenUsage: state.tokenUsage,
-      estimatedCost: state.estimatedCost,
-      finalVideo: state.finalVideo,
+      stage,
+      isGenerating,
+      error,
+      tokenUsage,
+      estimatedCost,
+      finalVideo,
       setStage,
       setIsGenerating,
       setError,
@@ -98,7 +95,7 @@ export function WorkflowProvider({ children }: WorkflowProviderProps) {
       setFinalVideo,
       reset,
     }),
-    [state]
+    [stage, isGenerating, error, tokenUsage, estimatedCost, finalVideo, setStage, setIsGenerating, setError, setTokenUsage, setEstimatedCost, setFinalVideo, reset]
   );
 
   return (

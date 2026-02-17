@@ -53,32 +53,22 @@ function BackToScenesButton() {
 }
 
 export function AssetGenerationScreen() {
-  const { stage, isGenerating: workflowGenerating, setIsGenerating } = useWorkflow();
+  const { isGenerating: workflowGenerating, setIsGenerating } = useWorkflow();
   const { scenes } = useScenes();
   const { assets, getAssetsByScene } = useAssets();
   const { isGenerating, progress, generateAllAssets, retryAsset } = useAssetGeneration();
   const hasStartedRef = useRef(false);
-  const prevStageRef = useRef(stage);
 
-  // Auto-start generation when entering the assets stage
+  // Auto-start generation on mount
   useEffect(() => {
-    // Reset when stage changes away from assets
-    if (prevStageRef.current === 'assets' && stage !== 'assets') {
-      hasStartedRef.current = false;
-    }
-    prevStageRef.current = stage;
-
-    // Start generation when entering assets stage
-    if (stage === 'assets' && !hasStartedRef.current && scenes.length > 0) {
+    if (!hasStartedRef.current && scenes.length > 0) {
       hasStartedRef.current = true;
       setIsGenerating(true);
       generateAllAssets().finally(() => {
         setIsGenerating(false);
       });
     }
-  }, [stage, scenes.length, generateAllAssets, setIsGenerating]);
-
-  if (stage !== 'assets') return null;
+  }, [scenes.length, generateAllAssets, setIsGenerating]);
 
   // Calculate totals from assets
   const assetArray = Array.from(assets.values());

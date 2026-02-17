@@ -1,12 +1,13 @@
+import { Navigate } from 'react-router-dom';
 import { useWorkflow } from '../../contexts/WorkflowContext';
 import { VideoPlayer } from './VideoPlayer';
 import { DownloadButton } from './DownloadButton';
 import { GoogleDriveButton } from './GoogleDriveButton';
 
 export function VideoOutputScreen() {
-  const { stage, finalVideo, reset } = useWorkflow();
+  const { finalVideo, reset } = useWorkflow();
 
-  if (stage !== 'output' || !finalVideo) return null;
+  if (!finalVideo) return <Navigate to="/config" replace />;
 
   const handleStartOver = () => {
     const confirmed = window.confirm(

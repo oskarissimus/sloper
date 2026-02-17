@@ -16,7 +16,7 @@ import {
 } from '../../services/pricing';
 
 export function ConfigScreen() {
-  const { stage, setStage, setError } = useWorkflow();
+  const { setStage, setError } = useWorkflow();
   const { config } = useConfig();
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -37,8 +37,6 @@ export function ConfigScreen() {
     () => estimateTotalCost(llmEst, imageEst, ttsEst),
     [llmEst, imageEst, ttsEst]
   );
-
-  if (stage !== 'config') return null;
 
   const canStart = () => {
     const { apiKeys, llm, image } = config;

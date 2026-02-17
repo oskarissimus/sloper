@@ -46,7 +46,7 @@ function BackToAssetsButton() {
 }
 
 export function VideoAssemblyScreen() {
-  const { stage, setStage, setFinalVideo, setIsGenerating, setError } = useWorkflow();
+  const { setStage, setFinalVideo, setIsGenerating, setError } = useWorkflow();
   const { config } = useConfig();
   const { scenes } = useScenes();
   const { assets, timings } = useAssets();
@@ -54,23 +54,6 @@ export function VideoAssemblyScreen() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [uploadSizeMB, setUploadSizeMB] = useState<string>('');
   const hasStartedRef = useRef(false);
-  const prevStageRef = useRef(stage);
-
-  useEffect(() => {
-    // Reset when stage changes away from assembly
-    if (prevStageRef.current === 'assembly' && stage !== 'assembly') {
-      hasStartedRef.current = false;
-      setStatus('preparing');
-    }
-    prevStageRef.current = stage;
-
-    // Start assembly when entering assembly stage
-    if (stage === 'assembly' && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      startAssembly();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage]);
 
   const startAssembly = async () => {
     setIsGenerating(true);
@@ -141,7 +124,14 @@ export function VideoAssemblyScreen() {
     }
   };
 
-  if (stage !== 'assembly') return null;
+  // Auto-start assembly on mount
+  useEffect(() => {
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      startAssembly();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const statusMessages: Record<AssemblyStatus, string> = {
     preparing: 'Preparing assets for upload...',
