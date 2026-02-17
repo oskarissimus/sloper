@@ -11,15 +11,22 @@ This guide covers deploying the Slop Video Generator to production.
 
 1. Google Cloud project with the following APIs enabled:
    - Cloud Run API
-   - Container Registry API
+   - Artifact Registry API
    - Cloud Build API (optional, for manual deployments)
 
-2. Service account with the following roles:
+2. Artifact Registry Docker repository created:
+   ```bash
+   gcloud artifacts repositories create sloper \
+     --repository-format=docker \
+     --location=us-central1
+   ```
+
+3. Service account with the following roles:
    - Cloud Run Admin
-   - Storage Admin (for Container Registry)
+   - Artifact Registry Writer
    - Service Account User
 
-3. GitHub repository with Actions enabled
+4. GitHub repository with Actions enabled
 
 ## GitHub Secrets
 
@@ -60,7 +67,7 @@ Triggered by changes to:
 
 The workflow:
 1. Builds Docker image
-2. Pushes to Google Container Registry
+2. Pushes to Artifact Registry
 3. Deploys to Cloud Run with:
    - 2GB memory
    - 300s timeout
@@ -88,10 +95,10 @@ gcloud builds submit --config cloudbuild.yaml
 
 ```bash
 cd backend
-docker build -t gcr.io/YOUR_PROJECT/slop-video-backend .
-docker push gcr.io/YOUR_PROJECT/slop-video-backend
+docker build -t us-central1-docker.pkg.dev/YOUR_PROJECT/sloper/slop-video-backend .
+docker push us-central1-docker.pkg.dev/YOUR_PROJECT/sloper/slop-video-backend
 gcloud run deploy slop-video-backend \
-  --image gcr.io/YOUR_PROJECT/slop-video-backend \
+  --image us-central1-docker.pkg.dev/YOUR_PROJECT/sloper/slop-video-backend \
   --platform managed \
   --region us-central1 \
   --memory 2Gi \
