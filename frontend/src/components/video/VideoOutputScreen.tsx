@@ -1,6 +1,7 @@
 import { useWorkflow } from '../../contexts/WorkflowContext';
 import { VideoPlayer } from './VideoPlayer';
 import { DownloadButton } from './DownloadButton';
+import { GoogleDriveButton } from './GoogleDriveButton';
 
 export function VideoOutputScreen() {
   const { stage, finalVideo, reset } = useWorkflow();
@@ -32,7 +33,10 @@ export function VideoOutputScreen() {
       </div>
 
       <div className="flex justify-between items-center bg-white rounded-lg shadow p-4">
-        <DownloadButton video={finalVideo} />
+        <div className="flex items-center gap-3">
+          <DownloadButton video={finalVideo} />
+          <GoogleDriveButton video={finalVideo} />
+        </div>
 
         <button
           onClick={handleStartOver}

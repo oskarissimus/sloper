@@ -39,6 +39,7 @@ jobs:
         env:
           VITE_BACKEND_URL: ${{ vars.BACKEND_URL }}
           VITE_BASE_PATH: /sloper/
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
         run: npm run build
 
       - name: Setup Pages
