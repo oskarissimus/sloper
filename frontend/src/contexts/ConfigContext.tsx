@@ -19,8 +19,8 @@ const defaultConfig: ConfigState = {
   video: {
     resolution: { width: 1024, height: 1536 },
     frameRate: 24,
-    numScenes: 18,
-    targetDuration: 180,
+    numScenes: 1,
+    targetDuration: 3,
   },
   image: {
     provider: 'openai',
