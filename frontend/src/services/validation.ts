@@ -10,7 +10,10 @@ export interface ModelFetchResult {
 }
 
 // Exclusion lists for filtering non-chat models
-const OPENAI_EXCLUDED = ['whisper', 'tts', 'dall-e', 'embedding', 'moderation', 'babbage', 'davinci'];
+const OPENAI_EXCLUDED = [
+  'whisper', 'tts', 'dall-e', 'embedding', 'moderation', 'babbage', 'davinci',
+  'realtime', 'transcribe', 'diarize', 'search', 'audio', 'codex',
+];
 const DEEPSEEK_EXCLUDED = ['embedding'];
 
 function filterAndSortModels(models: string[], excluded: string[]): string[] {
